@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Http\Controllers\Superadmin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class PermissionController extends Controller
+{
+    public function permissions(): Response
+    {
+        return Inertia::render('superadmin/permissions/Index');
+    }
+}
