@@ -1,51 +1,26 @@
 <script setup lang="ts">
-import { Monitor, Moon, Sun, Check } from '@lucide/vue';
-import { useAppearance } from '@/composables/useAppearance';
+import { Moon, Sun } from '@lucide/vue';
+import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useAppearance } from '@/composables/useAppearance';
 
 const { appearance, updateAppearance } = useAppearance();
 
-const options = [
-    { value: 'light', Icon: Sun, label: 'Light' },
-    { value: 'dark', Icon: Moon, label: 'Dark' },
-    { value: 'system', Icon: Monitor, label: 'System' },
-] as const;
+const isDark = computed(() => appearance.value === 'dark');
 
-const currentIcon = () => {
-    const match = options.find((o) => o.value === appearance.value);
-    return match?.Icon ?? Monitor;
+const toggle = () => {
+    updateAppearance(isDark.value ? 'light' : 'dark');
 };
 </script>
 
 <template>
-    <DropdownMenu>
-        <DropdownMenuTrigger :as-child="true">
-            <Button variant="ghost" size="icon" class="h-9 w-9 rounded-full">
-                <component :is="currentIcon()" class="h-4 w-4" />
-            </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-40">
-            <DropdownMenuItem
-                v-for="{ value, Icon, label } in options"
-                :key="value"
-                class="flex items-center justify-between cursor-pointer"
-                @click="updateAppearance(value)"
-            >
-                <span class="flex items-center gap-2">
-                    <component :is="Icon" class="h-4 w-4" />
-                    <span class="text-sm">{{ label }}</span>
-                </span>
-                <Check
-                    v-if="appearance === value"
-                    class="h-4 w-4 text-neutral-900 dark:text-neutral-100"
-                />
-            </DropdownMenuItem>
-        </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+        variant="ghost"
+        size="icon"
+        class="h-9 w-9 rounded-full"
+        @click="toggle"
+    >
+        <Sun v-if="isDark" class="h-4 w-4" />
+        <Moon v-else class="h-4 w-4" />
+    </Button>
 </template>
