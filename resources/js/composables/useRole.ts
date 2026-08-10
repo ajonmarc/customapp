@@ -14,12 +14,12 @@ export function useRole() {
     const user = computed(() => page.props.auth?.user as User | undefined);
     const roleName = computed(() => user.value?.role?.name ?? null);
 
-    const isAdmin = computed(() => roleName.value === 'Administrator');
-    const isOperator = computed(() => roleName.value === 'Operator');
-    const isTourist = computed(() => roleName.value === 'Tourist / User');
+    const isAdmin = computed(() => roleName.value === 'Admin');
+    const isSuperadmin = computed(() => roleName.value === 'Superadmin');
+    const isUser = computed(() => roleName.value === 'User');
 
     const hasRole = (...roles: string[]) =>
         roleName.value !== null && roles.includes(roleName.value);
 
-    return { user, roleName, isAdmin, isOperator, isTourist, hasRole };
+    return { user, roleName, isAdmin, isSuperadmin, isUser, hasRole };
 }

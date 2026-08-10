@@ -13,10 +13,9 @@ class LoginResponse implements LoginResponseContract
         $roleName = $user?->role?->name;
 
         $redirectTo = match ($roleName) {
-            'Administrator' => route('admin.dashboard'),
-            'Operator' => route('operator.dashboard'),
-            'Tourist / User' => route('tourist.dashboard'),
-            default => route('dashboard'),
+            'Superadmin' => route('superadmin.dashboard'),
+            'Admin' => route('admin.dashboard'),
+            'User' => route('user.dashboard'),
         };
 
         return $request->wantsJson()

@@ -46,12 +46,7 @@ const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
 const mainNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/tourist/dashboard', icon: LayoutGrid },
-    { title: 'Tour Packages', href: '/tourist/tour-packages', icon: Sailboat },
-    { title: 'Destinations', href: '/tourist/destinations', icon: MapPin },
-    { title: 'My Bookings', href: '/tourist/my-bookings', icon: ClipboardList },
-    { title: 'Payments', href: '/tourist/payments', icon: CreditCard },
-    { title: 'Weather Advisory', href: '/tourist/weather-advisory', icon: CloudSun },
+    { title: 'Dashboard', href: '/user/dashboard', icon: LayoutGrid },
 ];
 </script>
 
@@ -90,7 +85,7 @@ const mainNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link href="/tourist/dashboard" class="flex items-center gap-x-2">
+                <Link href="/user/dashboard" class="flex items-center gap-x-2">
                     <AppLogo />
                 </Link>
 

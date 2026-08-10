@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Operator;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -10,6 +10,6 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('operator/Dashboard');
+        return Inertia::render('user/Dashboard');
     }
 }

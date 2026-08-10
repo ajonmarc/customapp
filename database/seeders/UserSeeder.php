@@ -11,9 +11,18 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminRole = Role::where('name', 'Administrator')->first();
-        $operatorRole = Role::where('name', 'Operator')->first();
-        $touristRole = Role::where('name', 'Tourist / User')->first();
+        $superadminRole = Role::where('name', 'Superadmin')->first();
+        $adminRole = Role::where('name', 'Admin')->first();
+        $userRole = Role::where('name', 'User')->first();
+
+        User::firstOrCreate(
+            ['email' => 'superadmin@example.com'],
+            [
+                'name' => 'Superadmin User',
+                'password' => Hash::make('password'),
+                'role_id' => $superadminRole?->id,
+            ]
+        );
 
         User::firstOrCreate(
             ['email' => 'admin@example.com'],
@@ -25,20 +34,11 @@ class UserSeeder extends Seeder
         );
 
         User::firstOrCreate(
-            ['email' => 'operator@example.com'],
+            ['email' => 'user@example.com'],
             [
-                'name' => 'Operator User',
+                'name' => 'User User',
                 'password' => Hash::make('password'),
-                'role_id' => $operatorRole?->id,
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'tourist@example.com'],
-            [
-                'name' => 'Tourist User',
-                'password' => Hash::make('password'),
-                'role_id' => $touristRole?->id,
+                'role_id' => $userRole?->id,
             ]
         );
     }

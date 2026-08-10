@@ -13,45 +13,32 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import {  logout } from '@/routes';
+import { logout } from '@/routes';
 import { useRole } from '@/composables/useRole';
 import type { NavItem } from '@/types';
 
-const { isAdmin, isOperator, isTourist } = useRole();
+const { isSuperadmin, isAdmin, isUser } = useRole();
 
 const homeHref = computed(() => {
+    if (isSuperadmin.value) return '/superadmin/dashboard';
     if (isAdmin.value) return '/admin/dashboard';
-    if (isOperator.value) return '/operator/dashboard';
-    if (isTourist.value) return '/tourist/dashboard';
+    if (isUser.value) return '/user/dashboard';
     return '/';
 });
 
+const superadminNavItems: NavItem[] = [
+    { title: 'Dashboard', href: '/superadmin/dashboard', icon: LayoutGrid },
+
+];
+
 const adminNavItems: NavItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
-    { title: 'Users', href: '/admin/users', icon: Users },
-    { title: 'Tour Operators', href: '/admin/tour-operators', icon: Anchor },
-    { title: 'Destinations', href: '/admin/destinations', icon: MapPin },
-    { title: 'Reservations', href: '/admin/reservations', icon: ClipboardCheck },
-    { title: 'Payments', href: '/admin/payments', icon: CreditCard },
-    { title: 'Reports', href: '/admin/reports', icon: FileBarChart },
-    { title: 'Activity Logs', href: '/admin/activity-logs', icon: Activity },
+
 ];
 
-const operatorNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/operator/dashboard', icon: LayoutGrid },
-    { title: 'Tour Packages', href: '/operator/tour-packages', icon: Sailboat },
-    { title: 'Schedules', href: '/operator/schedules', icon: CalendarClock },
-    { title: 'Reservations', href: '/operator/reservations', icon: ClipboardCheck },
-    { title: 'Weather Advisory', href: '/operator/weather-advisory', icon: CloudSun },
-];
+const userNavItems: NavItem[] = [
+    { title: 'Dashboard', href: '/user/dashboard', icon: LayoutGrid },
 
-const touristNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/tourist/dashboard', icon: LayoutGrid },
-    { title: 'Tour Packages', href: '/tourist/tour-packages', icon: Sailboat },
-    { title: 'Destinations', href: '/tourist/destinations', icon: MapPin },
-    { title: 'My Bookings', href: '/tourist/my-bookings', icon: ClipboardList },
-    { title: 'Payments', href: '/tourist/payments', icon: CreditCard },
-    { title: 'Weather Advisory', href: '/tourist/weather-advisory', icon: CloudSun },
 ];
 
 const handleLogout = () => {
@@ -72,15 +59,21 @@ const handleLogout = () => {
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
-
         <SidebarContent>
-            <template v-if="isAdmin">
+            <!-- Super Administrator -->
+            <template v-if="isSuperadmin">
+                <NavMain label="Super Administrator" :items="superadminNavItems" />
                 <NavMain label="Administrator" :items="adminNavItems" />
-                <NavMain label="Operator" :items="operatorNavItems" />
-                <NavMain label="Tourist / User" :items="touristNavItems" />
+                <NavMain label="User" :items="userNavItems" />
             </template>
-            <NavMain v-else-if="isOperator" label="Operator" :items="operatorNavItems" />
-            <NavMain v-else-if="isTourist" label="Tourist / User" :items="touristNavItems" />
+
+            <!-- Administrator -->
+            <template v-else-if="isAdmin">
+                <NavMain label="Administrator" :items="adminNavItems" />
+            </template>
+
+            <!-- User -->
+            <NavMain v-else-if="isUser" label="User" :items="userNavItems" />
         </SidebarContent>
 
         <SidebarFooter>

@@ -9,9 +9,9 @@ const { breadcrumbs = [] } = defineProps<{
     breadcrumbs?: BreadcrumbItem[];
 }>();
 
-const { isTourist } = useRole();
+const { isUser } = useRole();
 
-const layoutComponent = computed(() => (isTourist.value ? AppHeaderLayout : AppSidebarLayout));
+const layoutComponent = computed(() => (isUser.value ? AppHeaderLayout : AppSidebarLayout));
 </script>
 
 <template>

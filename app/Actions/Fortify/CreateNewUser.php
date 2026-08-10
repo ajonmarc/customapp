@@ -25,7 +25,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $touristRole = Role::where('name', 'Tourist / User')->first();
+        $touristRole = Role::where('name', 'User')->first();
 
         return User::create([
             'name' => $input['name'],
