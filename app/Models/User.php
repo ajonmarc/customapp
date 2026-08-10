@@ -56,4 +56,10 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->belongsTo(Role::class);
     }
+
+
+    public function hasPermission(string $name): bool
+    {
+        return $this->role?->hasPermission($name) ?? false;
+    }
 }
