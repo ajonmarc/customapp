@@ -2,9 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import Form from './Form.vue';
-import { index, store } from '@/routes/superadmin/users';
+import { index, update } from '@/routes/superadmin/users';
 
-defineProps<{
+const props = defineProps<{
+    user: { id: number; name: string; email: string; role_id: number };
     roles: { id: number; name: string }[];
 }>();
 
@@ -12,22 +13,23 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Users', href: index() },
-            { title: 'Create' },
+            { title: 'Edit' },
         ],
     },
 });
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head title="Edit User" />
     <div class="px-4 py-6">
-        <Heading title="Create User" description="Add a new user to the system" />
+        <Heading title="Edit User" :description="`Editing ${user.name}`" />
 
         <div class="mt-6 max-w-2xl">
             <Form
+                :user="user"
                 :roles="roles"
-                :submit-action="store()"
-                submit-label="Create User"
+                :submit-action="update(user.id)"
+                submit-label="Save Changes"
             />
         </div>
     </div>
