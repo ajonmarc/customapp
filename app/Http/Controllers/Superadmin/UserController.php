@@ -11,21 +11,49 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $users = User::with('role')
-            ->latest()
-            ->paginate(10)
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+        $users = User::query()
+            ->with('role')
+            ->when(
+                $request->input('search'),
+                function (Builder $query, string $search) {
+                    $query->where(function (Builder $q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+                }
+            )
+            ->when(
+                $request->input('sort'),
+                function (Builder $query, string $sort) {
+                    foreach (explode(',', $sort) as $field) {
+                        $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
+                        $column = ltrim($field, '-');
+
+                        if (in_array($column, ['name', 'email'])) {
+                            $query->orderBy($column, $direction);
+                        }
+                    }
+                },
+                fn(Builder $query) => $query->latest()
+            )
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('superadmin/users/Index', [
             'users' => $users,
+            'filters' => $request->only('sort', 'search', 'per_page'),
         ]);
     }
-
     public function create(): Response
     {
         return Inertia::render('superadmin/users/Create', [
