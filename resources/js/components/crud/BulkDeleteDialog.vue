@@ -33,25 +33,25 @@ const handleBulkDelete = () => {
         error.value = 'No items selected for deletion.';
         return;
     }
-    
+
     console.log('Bulk delete - IDs to delete:', props.ids);
     processing.value = true;
     error.value = null;
-    
-    router.delete('/superadmin/users/bulk', {
+
+    router.delete('/superadmin/users-bulk-destroy', {
         data: { ids: props.ids },
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Bulk delete successful');
-            processing.value = false;
             emit('update:open', false);
             emit('deleted');
         },
         onError: (errors) => {
             console.error('Bulk delete error:', errors);
-            processing.value = false;
             error.value = 'An error occurred while deleting selected users. Please try again.';
-        }
+        },
+        onFinish: () => {
+            processing.value = false;
+        },
     });
 };
 </script>
@@ -62,7 +62,7 @@ const handleBulkDelete = () => {
             <DialogHeader>
                 <DialogTitle>Delete Selected {{ itemLabel || 'Items' }}</DialogTitle>
                 <DialogDescription>
-                    Are you sure you want to delete {{ count }} selected {{ itemLabel || 'items' }}? 
+                    Are you sure you want to delete {{ count }} selected {{ itemLabel || 'items' }}?
                     This action cannot be undone.
                 </DialogDescription>
             </DialogHeader>
@@ -72,20 +72,10 @@ const handleBulkDelete = () => {
             </div>
 
             <DialogFooter class="mt-6 gap-2">
-                <Button 
-                    type="button" 
-                    variant="secondary" 
-                    @click="emit('update:open', false)"
-                    :disabled="processing"
-                >
+                <Button type="button" variant="secondary" @click="emit('update:open', false)" :disabled="processing">
                     Cancel
                 </Button>
-                <Button 
-                    type="button" 
-                    variant="destructive" 
-                    :disabled="processing"
-                    @click="handleBulkDelete"
-                >
+                <Button type="button" variant="destructive" :disabled="processing" @click="handleBulkDelete">
                     <Spinner v-if="processing" class="mr-2" />
                     Delete {{ count }} {{ itemLabel || 'items' }}
                 </Button>

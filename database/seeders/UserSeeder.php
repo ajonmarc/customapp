@@ -42,5 +42,20 @@ class UserSeeder extends Seeder
                 'role_id' => $userRole?->id,
             ]
         );
+
+        // Generate 200 additional random users, split between Admin and User roles
+        $randomRoleIds = collect([$adminRole?->id, $userRole?->id])
+            ->filter()
+            ->values();
+
+        User::factory()
+            ->count(200)
+            ->make() // build without saving so we can assign role_id per-user
+            ->each(function (User $user) use ($randomRoleIds) {
+                $user->role_id = $randomRoleIds->isNotEmpty()
+                    ? $randomRoleIds->random()
+                    : null;
+                $user->save();
+            });
     }
 }

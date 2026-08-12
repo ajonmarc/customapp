@@ -73,25 +73,16 @@ class UserController extends Controller
             'password' => Hash::make($request->validated('password')),
         ]);
 
-        return redirect()
-            ->route('superadmin.users.index')
-            ->with('success', 'User created successfully.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User created successfully.']);
 
-    public function edit(User $user): Response
-    {
-        return Inertia::render('superadmin/users/Edit', [
-            'user' => $user->load('role'), // Load the role relationship
-            'roles' => Role::select('id', 'name')->get(),
-        ]);
+        return redirect()->route('superadmin.users.index');
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         if ($user->is_protected) {
-            return redirect()
-                ->back()
-                ->with('error', 'This account is protected and cannot be modified.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This account is protected and cannot be modified.']);
+            return redirect()->back();
         }
 
         $data = $request->validated();
@@ -104,24 +95,23 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()
-            ->route('superadmin.users.index')
-            ->with('success', 'User updated successfully.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User updated successfully.']);
+
+        return redirect()->route('superadmin.users.index');
     }
 
     public function destroy(User $user): RedirectResponse
     {
         if ($user->is_protected) {
-            return redirect()
-                ->back()
-                ->with('error', 'This account is protected and cannot be deleted.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This account is protected and cannot be deleted.']);
+            return redirect()->back();
         }
 
         $user->delete();
 
-        return redirect()
-            ->route('superadmin.users.index')
-            ->with('success', 'User deleted successfully.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User deleted successfully.']);
+
+        return redirect()->route('superadmin.users.index');
     }
 
     public function bulkDestroy(Request $request): RedirectResponse
@@ -129,24 +119,20 @@ class UserController extends Controller
         $ids = $request->input('ids', []);
 
         if (empty($ids)) {
-            return redirect()
-                ->back()
-                ->with('error', 'No users selected for deletion.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'No users selected for deletion.']);
+            return redirect()->back();
         }
 
-        // Validate that all IDs exist AND are not protected
         $validIds = User::whereIn('id', $ids)
             ->where('is_protected', false)
             ->pluck('id')
             ->toArray();
 
         if (empty($validIds)) {
-            return redirect()
-                ->back()
-                ->with('error', 'No valid users found for deletion.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'No valid users found for deletion.']);
+            return redirect()->back();
         }
 
-        // Delete the users
         $deleted = User::whereIn('id', $validIds)->delete();
 
         $skipped = count($ids) - count($validIds);
@@ -155,8 +141,8 @@ class UserController extends Controller
             $message .= " {$skipped} protected account(s) were skipped.";
         }
 
-        return redirect()
-            ->route('superadmin.users.index')
-            ->with('success', $message);
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
+        return redirect()->route('superadmin.users.index');
     }
 }
