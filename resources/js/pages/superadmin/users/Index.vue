@@ -131,7 +131,8 @@ const onPerPageChange = (value: AcceptableValue) => {
         <!-- Single unified panel -->
         <div class="mt-6 rounded-lg border">
             <!-- Toolbar -->
-          <div class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 border-b px-4 py-3">
+            <div
+                class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 border-b px-4 py-3">
                 <div class="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Show</span>
                     <Select :model-value="perPage" @update:model-value="onPerPageChange">
@@ -148,20 +149,22 @@ const onPerPageChange = (value: AcceptableValue) => {
                     <span>entries</span>
                 </div>
 
-                <div class="flex items-center gap-4">
-                    <div v-if="selectedCount > 0" class="flex items-center gap-3">
-                        <span class="text-sm text-muted-foreground whitespace-nowrap">{{ selectedCount }}
-                            selected</span>
+                <div class="flex flex-col gap-3 w-full sm:w-auto sm:flex-row sm:items-center sm:gap-4">
+                    <div class="relative order-1 w-full sm:order-2 sm:max-w-sm">
+                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input v-model="searchInput" placeholder="Search by name or email..." class="pl-9"
+                            @input="onSearchInput" />
+                    </div>
+
+                    <div v-if="selectedCount > 0"
+                        class="order-2 flex items-center justify-between gap-3 sm:order-1 sm:justify-start">
+                        <span class="text-sm text-muted-foreground whitespace-nowrap">
+                            {{ selectedCount }} selected
+                        </span>
                         <Button variant="destructive" size="sm" @click="bulkDeleteOpen = true">
                             <Trash2 class="mr-2 h-4 w-4" />
                             Delete selected
                         </Button>
-                    </div>
-
-                    <div class="relative w-full max-w-sm">
-                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input v-model="searchInput" placeholder="Search by name or email..." class="pl-9"
-                            @input="onSearchInput" />
                     </div>
                 </div>
             </div>
@@ -202,14 +205,15 @@ const onPerPageChange = (value: AcceptableValue) => {
             </div>
 
             <!-- Footer -->
-           <div class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 border-t px-4 py-3">
-                <p class="text-sm text-muted-foreground">
+            <div
+                class="flex flex-row flex-nowrap items-center justify-between gap-4 overflow-x-auto border-t px-4 py-3">
+                <p class="shrink-0 text-sm whitespace-nowrap text-muted-foreground">
                     Showing {{ props.users.from ?? 0 }} to {{ props.users.to ?? 0 }} of {{ props.users.total }} users
                 </p>
 
-                <div v-if="props.users.links.length > 3" class="flex gap-1">
+                <div v-if="props.users.links.length > 3" class="flex flex-nowrap gap-1">
                     <Link v-for="(link, i) in props.users.links" :key="i" :href="link.url ?? '#'" :class="[
-                        'rounded px-3 py-1 text-sm',
+                        'whitespace-nowrap rounded px-3 py-1 text-sm',
                         link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
                         !link.url && 'pointer-events-none opacity-50',
                     ]" v-html="link.label" />
