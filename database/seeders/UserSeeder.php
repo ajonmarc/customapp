@@ -21,6 +21,7 @@ class UserSeeder extends Seeder
                 'name' => 'Superadmin User',
                 'password' => Hash::make('password'),
                 'role_id' => $superadminRole?->id,
+                'is_protected' => true,
             ]
         );
 

@@ -88,6 +88,12 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        if ($user->is_protected) {
+            return redirect()
+                ->back()
+                ->with('error', 'This account is protected and cannot be modified.');
+        }
+
         $data = $request->validated();
 
         if (empty($data['password'])) {
@@ -105,6 +111,12 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
+        if ($user->is_protected) {
+            return redirect()
+                ->back()
+                ->with('error', 'This account is protected and cannot be deleted.');
+        }
+
         $user->delete();
 
         return redirect()
@@ -122,8 +134,11 @@ class UserController extends Controller
                 ->with('error', 'No users selected for deletion.');
         }
 
-        // Validate that all IDs exist
-        $validIds = User::whereIn('id', $ids)->pluck('id')->toArray();
+        // Validate that all IDs exist AND are not protected
+        $validIds = User::whereIn('id', $ids)
+            ->where('is_protected', false)
+            ->pluck('id')
+            ->toArray();
 
         if (empty($validIds)) {
             return redirect()
@@ -134,8 +149,14 @@ class UserController extends Controller
         // Delete the users
         $deleted = User::whereIn('id', $validIds)->delete();
 
+        $skipped = count($ids) - count($validIds);
+        $message = $deleted . ' user(s) deleted successfully.';
+        if ($skipped > 0) {
+            $message .= " {$skipped} protected account(s) were skipped.";
+        }
+
         return redirect()
             ->route('superadmin.users.index')
-            ->with('success', $deleted . ' user(s) deleted successfully.');
+            ->with('success', $message);
     }
 }
