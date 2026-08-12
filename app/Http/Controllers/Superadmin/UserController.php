@@ -22,7 +22,7 @@ class UserController extends Controller
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
         $users = User::query()
-            ->with('role')
+            ->with('role') // Make sure role is loaded
             ->when(
                 $request->input('search'),
                 function (Builder $query, string $search) {
@@ -49,11 +49,16 @@ class UserController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        // Add roles to the index page as well (for the edit modal)
+        $roles = Role::select('id', 'name')->get();
+
         return Inertia::render('superadmin/users/Index', [
             'users' => $users,
+            'roles' => $roles, // Pass roles to the index page
             'filters' => $request->only('sort', 'search', 'per_page'),
         ]);
     }
+
     public function create(): Response
     {
         return Inertia::render('superadmin/users/Create', [
@@ -76,7 +81,7 @@ class UserController extends Controller
     public function edit(User $user): Response
     {
         return Inertia::render('superadmin/users/Edit', [
-            'user' => $user->only('id', 'name', 'email', 'role_id'),
+            'user' => $user->load('role'), // Load the role relationship
             'roles' => Role::select('id', 'name')->get(),
         ]);
     }
@@ -105,5 +110,32 @@ class UserController extends Controller
         return redirect()
             ->route('superadmin.users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()
+                ->back()
+                ->with('error', 'No users selected for deletion.');
+        }
+
+        // Validate that all IDs exist
+        $validIds = User::whereIn('id', $ids)->pluck('id')->toArray();
+
+        if (empty($validIds)) {
+            return redirect()
+                ->back()
+                ->with('error', 'No valid users found for deletion.');
+        }
+
+        // Delete the users
+        $deleted = User::whereIn('id', $validIds)->delete();
+
+        return redirect()
+            ->route('superadmin.users.index')
+            ->with('success', $deleted . ' user(s) deleted successfully.');
     }
 }

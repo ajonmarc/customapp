@@ -13,10 +13,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import FormDialog from '@/components/crud/FormDialog.vue';
+import DeleteDialog from '@/components/crud/DeleteDialog.vue';
+import BulkDeleteDialog from '@/components/crud/BulkDeleteDialog.vue';
 import { useServerTable } from '@/composables/useServerTable';
 import { debounce } from '@/lib/debounce';
 import { createColumns, type UserRow } from './columns';
-import { index, create, destroy } from '@/routes/superadmin/users';
+import UserForm from './Form.vue';
+import { index, create, update, destroy } from '@/routes/superadmin/users';
 import type { AcceptableValue } from 'reka-ui';
 
 const props = defineProps<{
@@ -27,6 +31,7 @@ const props = defineProps<{
         to: number | null;
         total: number;
     };
+    roles: { id: number; name: string }[];
     filters?: { sort?: string; search?: string; per_page?: number | string };
 }>();
 
@@ -36,20 +41,42 @@ defineOptions({
     },
 });
 
-const handleDelete = (id: number, name: string) => {
-    if (confirm(`Delete user "${name}"? This cannot be undone.`)) {
-        router.delete(destroy(id));
-    }
-};
-
 const usersData = computed(() => props.users.data);
 const sort = computed(() => props.filters?.sort);
 const search = computed(() => props.filters?.search);
 const searchInput = ref(props.filters?.search ?? '');
 const perPage = computed(() => String(props.filters?.per_page ?? 10));
 
-const columns = createColumns(handleDelete);
+// --- Edit / Delete dialog state --------------------------------------
+const editingUser = ref<UserRow | null>(null);
+const deletingUser = ref<UserRow | null>(null);
+const bulkDeleteOpen = ref(false);
 
+const deleteAction = computed(() => {
+    if (!deletingUser.value) return null;
+    return {
+        url: `/superadmin/users/${deletingUser.value.id}`,
+        method: 'delete' as const,
+    };
+});
+
+const editingUserFormValues = computed(() => {
+    if (!editingUser.value) return undefined;
+
+    return {
+        id: editingUser.value.id,
+        name: editingUser.value.name,
+        email: editingUser.value.email,
+        role_id: editingUser.value.role?.id ?? '',
+    };
+});
+
+const columns = createColumns(
+    (user) => (editingUser.value = user),
+    (user) => (deletingUser.value = user),
+);
+
+// --- Table setup -------------------------------------------------------
 const { table, runSearch } = useServerTable<UserRow>({
     data: usersData,
     columns,
@@ -58,6 +85,17 @@ const { table, runSearch } = useServerTable<UserRow>({
     search,
 });
 
+// --- Selection handling ----------------------------------------------
+const selectedRows = computed(() => table.getSelectedRowModel().rows);
+const selectedCount = computed(() => selectedRows.value.length);
+const selectedIds = computed(() => selectedRows.value.map((row) => row.original.id));
+
+const handleBulkDeleteSuccess = () => {
+    table.resetRowSelection();
+    router.reload();
+};
+
+// --- Search / pagination handling -------------------------------------
 const debouncedSearch = debounce((value: string) => runSearch(value), 350);
 
 const onSearchInput = (event: Event) => {
@@ -74,19 +112,6 @@ const onPerPageChange = (value: AcceptableValue) => {
         { preserveState: true, preserveScroll: true, replace: true },
     );
 };
-
-const selectedRows = computed(() => table.getSelectedRowModel().rows);
-const selectedCount = computed(() => selectedRows.value.length);
-
-const bulkDelete = () => {
-    if (selectedCount.value === 0) return;
-    if (!confirm(`Delete ${selectedCount.value} selected user(s)? This cannot be undone.`)) return;
-
-    selectedRows.value.forEach((row) => {
-        router.delete(destroy(row.original.id), { preserveScroll: true });
-    });
-    table.resetRowSelection();
-};
 </script>
 
 <template>
@@ -102,9 +127,7 @@ const bulkDelete = () => {
             </Button>
         </div>
 
-        <!-- Single unified panel: toolbar, table, and footer all share one
-             bordered container, separated only by internal border-b/border-t
-             lines — reads as one table widget instead of separate blocks. -->
+        <!-- Single unified panel -->
         <div class="mt-6 rounded-lg border">
             <!-- Toolbar -->
             <div class="flex flex-wrap items-center justify-between gap-4 border-b px-4 py-3">
@@ -127,7 +150,7 @@ const bulkDelete = () => {
                 <div class="flex items-center gap-4">
                     <div v-if="selectedCount > 0" class="flex items-center gap-3">
                         <span class="text-sm text-muted-foreground">{{ selectedCount }} selected</span>
-                        <Button variant="destructive" size="sm" @click="bulkDelete">
+                        <Button variant="destructive" size="sm" @click="bulkDeleteOpen = true">
                             <Trash2 class="mr-2 h-4 w-4" />
                             Delete selected
                         </Button>
@@ -149,13 +172,10 @@ const bulkDelete = () => {
             <table class="w-full border-collapse text-sm">
                 <thead class="bg-muted/50">
                     <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                        <th
-                            v-for="header in headerGroup.headers"
-                            :key="header.id"
+                        <th v-for="header in headerGroup.headers" :key="header.id"
                             class="border-b px-4 py-3 text-left font-medium"
                             :class="header.column.getCanSort() && 'cursor-pointer select-none'"
-                            @click="header.column.getCanSort() && header.column.toggleSorting(undefined, $event.shiftKey)"
-                        >
+                            @click="header.column.getCanSort() && header.column.toggleSorting(undefined, $event.shiftKey)">
                             <div class="flex items-center gap-1">
                                 <FlexRender :render="header.column.columnDef.header" :props="header.getContext()" />
                                 <ArrowUp v-if="header.column.getIsSorted() === 'asc'" class="h-3 w-3" />
@@ -165,14 +185,12 @@ const bulkDelete = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr
-                        v-for="row in table.getRowModel().rows"
-                        :key="row.id"
+                    <tr v-for="row in table.getRowModel().rows" :key="row.id"
                         class="[&:not(:last-child)]:border-b hover:bg-muted/30"
-                        :data-state="row.getIsSelected() ? 'selected' : undefined"
-                    >
+                        :data-state="row.getIsSelected() ? 'selected' : undefined">
                         <td v-for="cell in row.getAllCells()" :key="cell.id" class="px-4 py-3">
-                            <FlexRender :render="cell.column.columnDef.cell ?? cell.getValue()" :props="cell.getContext()" />
+                            <FlexRender :render="cell.column.columnDef.cell ?? cell.getValue()"
+                                :props="cell.getContext()" />
                         </td>
                     </tr>
                     <tr v-if="usersData.length === 0">
@@ -190,19 +208,37 @@ const bulkDelete = () => {
                 </p>
 
                 <div v-if="props.users.links.length > 3" class="flex gap-1">
-                    <Link
-                        v-for="(link, i) in props.users.links"
-                        :key="i"
-                        :href="link.url ?? '#'"
-                        :class="[
-                            'rounded px-3 py-1 text-sm',
-                            link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
-                            !link.url && 'pointer-events-none opacity-50',
-                        ]"
-                        v-html="link.label"
-                    />
+                    <Link v-for="(link, i) in props.users.links" :key="i" :href="link.url ?? '#'" :class="[
+                        'rounded px-3 py-1 text-sm',
+                        link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+                        !link.url && 'pointer-events-none opacity-50',
+                    ]" v-html="link.label" />
                 </div>
             </div>
         </div>
+
+        <!-- Edit Dialog -->
+        <FormDialog :open="!!editingUser" title="Edit User"
+            :description="editingUser ? `Update ${editingUser.name}'s account details.` : undefined"
+            @update:open="(v) => !v && (editingUser = null)">
+            <UserForm v-if="editingUserFormValues" :user="editingUserFormValues" :roles="roles"
+                :submit-action="update(editingUser!.id)" submit-label="Save Changes" @success="editingUser = null" />
+        </FormDialog>
+
+        <!-- Single Delete Dialog -->
+        <DeleteDialog :open="!!deletingUser" :action="deleteAction" :description="deletingUser
+            ? `This will permanently delete ${deletingUser.name}. This action cannot be undone.`
+            : ''
+            " @update:open="(v) => !v && (deletingUser = null)" />
+
+        <!-- Bulk Delete Dialog -->
+        <BulkDeleteDialog
+            :open="bulkDeleteOpen"
+            :count="selectedCount"
+            :ids="selectedIds"
+            item-label="user"
+            @update:open="bulkDeleteOpen = $event"
+            @deleted="handleBulkDeleteSuccess"
+        />
     </div>
 </template>
