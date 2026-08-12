@@ -1,13 +1,13 @@
-import { computed, type Ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { useTable, type ColumnDef, type SortingState, type RowData } from '@tanstack/vue-table';
+import { useTable, type ColumnDef, type SortingState, type RowSelectionState, type RowData } from '@tanstack/vue-table';
 import { appTableFeatures, type AppTableFeatures } from '@/lib/tableFeatures';
 
 type ServerTableOptions<T extends RowData> = {
     data: Ref<T[]>;
     columns: ColumnDef<AppTableFeatures, T>[];
     baseUrl: string;
-    sort: Ref<string | undefined>; // e.g. "name,-email"
+    sort: Ref<string | undefined>;
     search: Ref<string | undefined>;
 };
 
@@ -19,7 +19,6 @@ function parseSorting(sort?: string | string[] | null): SortingState {
     }));
 }
 
-// [{ id: 'name', desc: false }, { id: 'email', desc: true }] -> "name,-email"
 function serializeSorting(sorting: SortingState): string | undefined {
     if (sorting.length === 0) return undefined;
     return sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(',');
@@ -33,16 +32,24 @@ export function useServerTable<T extends RowData>({
     search,
 }: ServerTableOptions<T>) {
     const sorting = computed<SortingState>(() => parseSorting(sort.value));
+    const rowSelection = ref<RowSelectionState>({});
 
     const table = useTable({
         features: appTableFeatures,
         data,
         columns,
         state: {
-            sorting: sorting.value,
+            get sorting() {
+                return sorting.value;
+            },
+            get rowSelection() {
+                return rowSelection.value;
+            },
         },
         enableMultiSort: true,
         manualSorting: true,
+        enableRowSelection: true,
+        getRowId: (row: T) => String((row as { id: number | string }).id),
         onSortingChange: (updater) => {
             const next = typeof updater === 'function' ? updater(sorting.value) : updater;
 
@@ -51,6 +58,9 @@ export function useServerTable<T extends RowData>({
                 { sort: serializeSorting(next), search: search.value },
                 { preserveState: true, preserveScroll: true, replace: true },
             );
+        },
+        onRowSelectionChange: (updater) => {
+            rowSelection.value = typeof updater === 'function' ? updater(rowSelection.value) : updater;
         },
     });
 
@@ -62,5 +72,5 @@ export function useServerTable<T extends RowData>({
         );
     };
 
-    return { table, runSearch };
+    return { table, runSearch, rowSelection };
 }

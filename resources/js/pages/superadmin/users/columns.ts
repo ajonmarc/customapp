@@ -1,4 +1,3 @@
-// columns.ts
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { Button } from '@/components/ui/button';
@@ -22,33 +21,35 @@ export function createColumns(
             id: 'select',
             header: ({ table }) =>
                 h(Checkbox, {
-                    checked: table.getIsAllPageRowsSelected(),
-                    'onUpdate:checked': (value: boolean) => {
+                    modelValue: table.getIsAllPageRowsSelected()
+                        ? true
+                        : table.getIsSomePageRowsSelected()
+                            ? 'indeterminate'
+                            : false,
+                    'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
                         table.toggleAllPageRowsSelected(!!value);
                     },
-                    indeterminate: table.getIsSomePageRowsSelected(),
                     'aria-label': 'Select all',
                 }),
             cell: ({ row }) =>
                 h(Checkbox, {
-                    checked: row.getIsSelected(),
-                    'onUpdate:checked': (value: boolean) => {
+                    modelValue: row.getIsSelected(),
+                    'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
                         row.toggleSelected(!!value);
                     },
                     'aria-label': 'Select row',
                 }),
             enableSorting: false,
-            // Remove enableHiding as it doesn't exist in your version
         },
-        { 
-            accessorKey: 'name', 
-            header: 'Name', 
-            enableSorting: true 
+        {
+            accessorKey: 'name',
+            header: 'Name',
+            enableSorting: true
         },
-        { 
-            accessorKey: 'email', 
-            header: 'Email', 
-            enableSorting: true 
+        {
+            accessorKey: 'email',
+            header: 'Email',
+            enableSorting: true
         },
         {
             id: 'role',
