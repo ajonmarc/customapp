@@ -2,13 +2,14 @@
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/profile'; // Only import edit
+import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 
 defineOptions({
@@ -38,8 +39,7 @@ const user = computed(() => page.props.auth.user);
         />
 
         <Form
-            action="/profile"
-            method="put"
+            v-bind="ProfileController.update.form()"
             class="space-y-6"
             v-slot="{ errors, processing }"
         >
@@ -93,9 +93,9 @@ const user = computed(() => page.props.auth.user);
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="processing" data-test="update-profile-button">
-                    Save
-                </Button>
+                <Button :disabled="processing" data-test="update-profile-button"
+                    >Save</Button
+                >
             </div>
         </Form>
     </div>
