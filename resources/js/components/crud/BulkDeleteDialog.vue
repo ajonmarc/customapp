@@ -18,6 +18,7 @@ const props = defineProps<{
     count: number;
     ids: number[];
     itemLabel?: string;
+    action: string;
 }>();
 
 const emit = defineEmits<{
@@ -34,11 +35,10 @@ const handleBulkDelete = () => {
         return;
     }
 
-    console.log('Bulk delete - IDs to delete:', props.ids);
     processing.value = true;
     error.value = null;
 
-    router.delete('/superadmin/users-bulk-destroy', {
+    router.delete(props.action, {
         data: { ids: props.ids },
         preserveScroll: true,
         onSuccess: () => {
@@ -47,7 +47,7 @@ const handleBulkDelete = () => {
         },
         onError: (errors) => {
             console.error('Bulk delete error:', errors);
-            error.value = 'An error occurred while deleting selected users. Please try again.';
+            error.value = `An error occurred while deleting selected ${props.itemLabel || 'items'}s. Please try again.`;
         },
         onFinish: () => {
             processing.value = false;

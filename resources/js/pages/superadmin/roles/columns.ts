@@ -1,4 +1,4 @@
-//resources/js/pages/superadmin/users/columns.ts
+// resources/js/pages/superadmin/roles/columns.ts
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { Button } from '@/components/ui/button';
@@ -6,17 +6,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Pencil, Trash2 } from '@lucide/vue';
 import type { AppTableFeatures } from '@/lib/tableFeatures';
 
-export type UserRow = {
+export type RoleRow = {
     id: number;
     name: string;
-    email: string;
-    role: { id: number; name: string } | null;
+    description: string | null;
 };
 
 export function createColumns(
-    onEdit: (user: UserRow) => void,
-    onDelete: (user: UserRow) => void,
-): ColumnDef<AppTableFeatures, UserRow>[] {
+    onEdit: (role: RoleRow) => void,
+    onDelete: (role: RoleRow) => void,
+): ColumnDef<AppTableFeatures, RoleRow>[] {
     return [
         {
             id: 'select',
@@ -45,17 +44,12 @@ export function createColumns(
         {
             accessorKey: 'name',
             header: 'Name',
-            enableSorting: true
+            enableSorting: true,
         },
         {
-            accessorKey: 'email',
-            header: 'Email',
-            enableSorting: true
-        },
-        {
-            id: 'role',
-            header: 'Role',
-            accessorFn: (row) => row.role?.name ?? '—',
+            id: 'description',
+            header: 'Description',
+            accessorFn: (row) => row.description ?? '—',
             enableSorting: false,
         },
         {

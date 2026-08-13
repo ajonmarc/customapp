@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { Form, Link } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,8 @@ const props = defineProps<{
     user?: UserFormValues;
     submitAction: { url: string; method: 'post' | 'put' };
     submitLabel: string;
+    cancelHref?: string;
+    onCancel?: () => void;
 }>();
 
 const emit = defineEmits<{ success: [] }>();
@@ -56,83 +58,92 @@ const handleRoleChange = (value: AcceptableValue) => {
         v-slot="{ errors, processing }"
         @success="emit('success')"
     >
-        <div class="grid gap-2">
-            <Label for="name">Name</Label>
-            <Input 
-                id="name" 
-                name="name" 
-                :default-value="user?.name" 
-                required 
-                autocomplete="name" 
-                placeholder="Full name" 
-            />
-            <InputError :message="errors.name" />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+            <div class="grid gap-2">
+                <Label for="name">Name</Label>
+                <Input
+                    id="name"
+                    name="name"
+                    :default-value="user?.name"
+                    required
+                    autocomplete="name"
+                    placeholder="Full name"
+                />
+                <InputError :message="errors.name" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="email">Email address</Label>
+                <Input
+                    id="email"
+                    type="email"
+                    name="email"
+                    :default-value="user?.email"
+                    required
+                    autocomplete="email"
+                    placeholder="email@example.com"
+                />
+                <InputError :message="errors.email" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="role_id">Role</Label>
+                <!-- Hidden input to submit the role_id value -->
+                <input type="hidden" name="role_id" :value="selectedRoleId" />
+
+                <Select
+                    :model-value="selectedRoleId"
+                    @update:model-value="handleRoleChange"
+                >
+                    <SelectTrigger id="role_id" class="w-full">
+                        <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="role in roles" :key="role.id" :value="role.id.toString()">
+                            {{ role.name }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                <InputError :message="errors.role_id" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="password">
+                    Password
+                    <span v-if="user" class="text-muted-foreground">(leave blank to keep current)</span>
+                </Label>
+                <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    :required="!user"
+                    autocomplete="new-password"
+                    placeholder="Password"
+                />
+                <InputError :message="errors.password" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="password_confirmation">Confirm password</Label>
+                <Input
+                    id="password_confirmation"
+                    type="password"
+                    name="password_confirmation"
+                    autocomplete="new-password"
+                    placeholder="Confirm password"
+                />
+                <InputError :message="errors.password_confirmation" />
+            </div>
         </div>
 
-        <div class="grid gap-2">
-            <Label for="email">Email address</Label>
-            <Input 
-                id="email" 
-                type="email" 
-                name="email" 
-                :default-value="user?.email" 
-                required 
-                autocomplete="email" 
-                placeholder="email@example.com" 
-            />
-            <InputError :message="errors.email" />
-        </div>
+        <div class="flex items-center justify-end gap-3">
+            <Button v-if="cancelHref" as-child variant="outline" type="button" :disabled="processing">
+                <Link :href="cancelHref">Cancel</Link>
+            </Button>
+            <Button v-else-if="onCancel" variant="outline" type="button" :disabled="processing" @click="onCancel">
+                Cancel
+            </Button>
 
-        <div class="grid gap-2">
-            <Label for="password">
-                Password
-                <span v-if="user" class="text-muted-foreground">(leave blank to keep current)</span>
-            </Label>
-            <Input 
-                id="password" 
-                type="password" 
-                name="password" 
-                :required="!user" 
-                autocomplete="new-password" 
-                placeholder="Password" 
-            />
-            <InputError :message="errors.password" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="password_confirmation">Confirm password</Label>
-            <Input 
-                id="password_confirmation" 
-                type="password" 
-                name="password_confirmation" 
-                autocomplete="new-password" 
-                placeholder="Confirm password" 
-            />
-            <InputError :message="errors.password_confirmation" />
-        </div>
-
-        <div class="grid gap-2">
-            <Label for="role_id">Role</Label>
-            <!-- Hidden input to submit the role_id value -->
-            <input type="hidden" name="role_id" :value="selectedRoleId" />
-            
-            <Select 
-                :model-value="selectedRoleId"
-                @update:model-value="handleRoleChange"
-            >
-                <SelectTrigger id="role_id" class="w-full">
-                    <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem v-for="role in roles" :key="role.id" :value="role.id.toString()">
-                        {{ role.name }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <InputError :message="errors.role_id" />
-        </div>
-
-        <div class="flex items-center gap-4">
             <Button type="submit" :disabled="processing">
                 <Spinner v-if="processing" />
                 {{ submitLabel }}

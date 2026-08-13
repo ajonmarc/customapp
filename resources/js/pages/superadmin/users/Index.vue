@@ -222,11 +222,14 @@ const onPerPageChange = (value: AcceptableValue) => {
         </div>
 
         <!-- Edit Dialog -->
-        <FormDialog :open="!!editingUser" title="Edit User"
+        <FormDialog :open="!!editingUser" title="Edit User" content-class="sm:max-w-6xl"
             :description="editingUser ? `Update ${editingUser.name}'s account details.` : undefined"
             @update:open="(v) => !v && (editingUser = null)">
-            <UserForm v-if="editingUserFormValues" :user="editingUserFormValues" :roles="roles"
-                :submit-action="update(editingUser!.id)" submit-label="Save Changes" @success="editingUser = null" />
+            <template #default="{ close }">
+                <UserForm v-if="editingUserFormValues" :user="editingUserFormValues" :roles="roles"
+                    :submit-action="update(editingUser!.id)" submit-label="Save Changes" :on-cancel="close"
+                    @success="editingUser = null" />
+            </template>
         </FormDialog>
 
         <!-- Single Delete Dialog -->
@@ -237,6 +240,7 @@ const onPerPageChange = (value: AcceptableValue) => {
 
         <!-- Bulk Delete Dialog -->
         <BulkDeleteDialog :open="bulkDeleteOpen" :count="selectedCount" :ids="selectedIds" item-label="user"
-            @update:open="bulkDeleteOpen = $event" @deleted="handleBulkDeleteSuccess" />
+            action="/superadmin/users-bulk-destroy" @update:open="bulkDeleteOpen = $event"
+            @deleted="handleBulkDeleteSuccess" />
     </div>
 </template>

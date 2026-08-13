@@ -13,6 +13,9 @@ Route::middleware('role:Superadmin')->prefix('superadmin')->name('superadmin.')-
     Route::resource('users', UserController::class);
     Route::delete('users-bulk-destroy', [UserController::class, 'bulkDestroy'])->name('users.bulk.destroy');
 
-    Route::get('roles', [RoleController::class, 'roles'])->name('roles');
-    Route::get('permissions', [PermissionController::class, 'permissions'])->name('permissions');
+    Route::resource('roles', RoleController::class);
+
+    Route::resource('permissions', PermissionController::class);
+    Route::delete('roles-bulk-destroy', [RoleController::class, 'bulkDestroy'])
+        ->name('roles.bulk-destroy');
 });

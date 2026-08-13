@@ -7,18 +7,21 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     open: boolean;
     title: string;
     description?: string;
-}>();
+    contentClass?: string;
+}>(), {
+    contentClass: 'sm:max-w-md',
+});
 
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 </script>
 
 <template>
     <Dialog :open="open" @update:open="(v) => emit('update:open', v)">
-        <DialogContent class="sm:max-w-md">
+        <DialogContent :class="contentClass">
             <DialogHeader>
                 <DialogTitle>{{ title }}</DialogTitle>
                 <DialogDescription v-if="description">{{ description }}</DialogDescription>

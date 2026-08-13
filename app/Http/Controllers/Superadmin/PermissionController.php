@@ -9,7 +9,7 @@ use Inertia\Response;
 
 class PermissionController extends Controller
 {
-    public function permissions(): Response
+    public function index(): Response
     {
         return Inertia::render('superadmin/permissions/Index');
     }

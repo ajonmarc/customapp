@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
-import { permissions } from '@/routes/superadmin';
+import { index } from '@/routes/superadmin/permissions';
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            {
-                href: permissions(),
-            },
-        ],
+        breadcrumbs: [{ title: 'Permissions', href: index() }],
     },
 });
 </script>

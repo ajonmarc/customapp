@@ -8,6 +8,7 @@ defineOptions({
         breadcrumbs: [
             {
                 href: dashboard(),
+                title: 'Dashboard',
             },
         ],
     },
