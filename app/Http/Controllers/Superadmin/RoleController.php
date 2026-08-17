@@ -11,47 +11,48 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Controllers\Superadmin\Concerns\HasSessionFilters;
 
 class RoleController extends Controller
 {
-    public function index(Request $request): Response
+    use HasSessionFilters;
+
+    protected string $filterSessionKey = 'roles';
+    protected array $sortableColumns = ['name', 'description'];
+    protected string $filterIndexRoute = 'superadmin.roles.index';
+
+    public function index(): Response
     {
-        $perPage = (int) $request->input('per_page', 10);
+        $sort = $this->sanitizeSort(session('roles.sort'), ['name', 'description']);
+        $search = session('roles.search');
+        $perPage = (int) session('roles.per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $page = (int) session('roles.page', 1);
 
         $roles = Role::query()
-            ->when(
-                $request->input('search'),
-                function (Builder $query, string $search) {
-                    $query->where(function (Builder $q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('description', 'like', "%{$search}%");
-                    });
+            ->when($search, function (Builder $query, string $search) {
+                $query->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($sort, function (Builder $query) use ($sort) {
+                foreach (explode(',', $sort) as $field) {
+                    $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
+                    $query->orderBy(ltrim($field, '-'), $direction);
                 }
-            )
-            ->when(
-                $request->input('sort'),
-                function (Builder $query, string $sort) {
-                    foreach (explode(',', $sort) as $field) {
-                        $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
-                        $column = ltrim($field, '-');
-
-                        if (in_array($column, ['name', 'description'])) {
-                            $query->orderBy($column, $direction);
-                        }
-                    }
-                },
-                fn(Builder $query) => $query->orderBy('name')
-            )
-            ->paginate($perPage)
-            ->withQueryString();
+            }, fn (Builder $query) => $query->orderBy('name'))
+            ->paginate($perPage, ['*'], 'page', $page);
 
         return Inertia::render('superadmin/roles/Index', [
             'roles' => $roles,
-            'filters' => $request->only('sort', 'search', 'per_page'),
+            'filters' => [
+                'sort' => $sort,
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
-
     public function create(): Response
     {
         return Inertia::render('superadmin/roles/Create');
@@ -64,13 +65,6 @@ class RoleController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Role created successfully.']);
 
         return redirect()->route('superadmin.roles.index');
-    }
-
-    public function edit(Role $role): Response
-    {
-        return Inertia::render('superadmin/roles/Edit', [
-            'role' => $role,
-        ]);
     }
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse

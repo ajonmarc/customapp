@@ -11,45 +11,48 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Controllers\Superadmin\Concerns\HasSessionFilters;
 
 class PermissionController extends Controller
 {
-    public function index(Request $request): Response
+    use HasSessionFilters;
+
+    protected string $filterSessionKey = 'permissions';
+    protected array $sortableColumns = ['name', 'label', 'group'];
+
+    protected string $filterIndexRoute = 'superadmin.permissions.index';
+
+    public function index(): Response
     {
-        $perPage = (int) $request->input('per_page', 10);
+        $sort = $this->sanitizeSort(session('permissions.sort'), ['name', 'label', 'group']);
+        $search = session('permissions.search');
+        $perPage = (int) session('permissions.per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $page = (int) session('permissions.page', 1);
 
         $permissions = Permission::query()
-            ->when(
-                $request->input('search'),
-                function (Builder $query, string $search) {
-                    $query->where(function (Builder $q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('label', 'like', "%{$search}%")
-                            ->orWhere('group', 'like', "%{$search}%");
-                    });
+            ->when($search, function (Builder $query, string $search) {
+                $query->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('label', 'like', "%{$search}%")
+                        ->orWhere('group', 'like', "%{$search}%");
+                });
+            })
+            ->when($sort, function (Builder $query) use ($sort) {
+                foreach (explode(',', $sort) as $field) {
+                    $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
+                    $query->orderBy(ltrim($field, '-'), $direction);
                 }
-            )
-            ->when(
-                $request->input('sort'),
-                function (Builder $query, string $sort) {
-                    foreach (explode(',', $sort) as $field) {
-                        $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
-                        $column = ltrim($field, '-');
-
-                        if (in_array($column, ['name', 'label', 'group'])) {
-                            $query->orderBy($column, $direction);
-                        }
-                    }
-                },
-                fn(Builder $query) => $query->orderBy('group')->orderBy('label')
-            )
-            ->paginate($perPage)
-            ->withQueryString();
+            }, fn (Builder $query) => $query->orderBy('group')->orderBy('label'))
+            ->paginate($perPage, ['*'], 'page', $page);
 
         return Inertia::render('superadmin/permissions/Index', [
             'permissions' => $permissions,
-            'filters' => $request->only('sort', 'search', 'per_page'),
+            'filters' => [
+                'sort' => $sort,
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -65,13 +68,6 @@ class PermissionController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Permission created successfully.']);
 
         return redirect()->route('superadmin.permissions.index');
-    }
-
-    public function edit(Permission $permission): Response
-    {
-        return Inertia::render('superadmin/permissions/Edit', [
-            'permission' => $permission,
-        ]);
     }
 
     public function update(UpdatePermissionRequest $request, Permission $permission): RedirectResponse

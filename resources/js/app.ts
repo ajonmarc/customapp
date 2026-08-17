@@ -27,11 +27,14 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on page load...
-initializeAppearance();
+// Client-only setup - never runs during SSR
+if (typeof window !== 'undefined') {
+    // This will set light / dark mode on page load...
+    initializeAppearance();
 
-// This will set the color theme (Surigao, Sunburst, etc.) on page load...
-initializeColorTheme();
+    // This will set the color theme (Surigao, Sunburst, etc.) on page load...
+    initializeColorTheme();
 
-// This will listen for flash toast data from the server...
-initializeFlashToast();
+    // This will listen for flash toast data from the server...
+    initializeFlashToast();
+}

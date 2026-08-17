@@ -6,32 +6,41 @@ import { appTableFeatures, type AppTableFeatures } from '@/lib/tableFeatures';
 type ServerTableOptions<T extends RowData> = {
     data: Ref<T[]>;
     columns: ColumnDef<AppTableFeatures, T>[];
-    baseUrl: string;
+    filterUrl: string;
     sort: Ref<string | undefined>;
     search: Ref<string | undefined>;
+    sortableColumns: string[];
+    only?: string[];
 };
 
-function parseSorting(sort?: string | string[] | null): SortingState {
-    if (!sort || typeof sort !== 'string') return [];
-    return sort.split(',').map((part) => ({
-        id: part.startsWith('-') ? part.slice(1) : part,
-        desc: part.startsWith('-'),
-    }));
+const SORT_PATTERN = /^-?[a-zA-Z]+(,-?[a-zA-Z]+)*$/;
+
+function parseSorting(sort: string | undefined, allowed: string[]): SortingState {
+    if (!sort || !SORT_PATTERN.test(sort)) return [];
+    return sort
+        .split(',')
+        .map((part) => ({
+            id: part.startsWith('-') ? part.slice(1) : part,
+            desc: part.startsWith('-'),
+        }))
+        .filter((s) => allowed.includes(s.id));
 }
 
-function serializeSorting(sorting: SortingState): string | undefined {
-    if (sorting.length === 0) return undefined;
-    return sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(',');
+function serializeSorting(sorting: SortingState, allowed: string[]): string | undefined {
+    const clean = sorting.filter((s) => allowed.includes(s.id));
+    return clean.length ? clean.map((s) => (s.desc ? `-${s.id}` : s.id)).join(',') : undefined;
 }
 
 export function useServerTable<T extends RowData>({
     data,
     columns,
-    baseUrl,
+    filterUrl,
     sort,
     search,
+    sortableColumns,
+    only,
 }: ServerTableOptions<T>) {
-    const sorting = computed<SortingState>(() => parseSorting(sort.value));
+    const sorting = computed<SortingState>(() => parseSorting(sort.value, sortableColumns));
     const rowSelection = ref<RowSelectionState>({});
 
     const table = useTable({
@@ -53,10 +62,10 @@ export function useServerTable<T extends RowData>({
         onSortingChange: (updater) => {
             const next = typeof updater === 'function' ? updater(sorting.value) : updater;
 
-            router.get(
-                baseUrl,
-                { sort: serializeSorting(next), search: search.value },
-                { preserveState: true, preserveScroll: true, replace: true },
+            router.post(
+                filterUrl,
+                { sort: serializeSorting(next, sortableColumns), search: search.value, page: 1 },
+                { preserveScroll: true, preserveUrl: true, only }, // ← added preserveUrl: true
             );
         },
         onRowSelectionChange: (updater) => {
@@ -65,11 +74,11 @@ export function useServerTable<T extends RowData>({
     });
 
     const runSearch = (value: string) => {
-        router.get(
-            baseUrl,
-            { sort: sort.value, search: value || undefined },
-            { preserveState: true, preserveScroll: true, replace: true },
-        );
+        router.post(filterUrl, { sort: sort.value, search: value || undefined, page: 1 }, {
+            preserveScroll: true,
+            preserveUrl: true, // ← added
+            only,
+        });
     };
 
     return { table, runSearch, rowSelection };

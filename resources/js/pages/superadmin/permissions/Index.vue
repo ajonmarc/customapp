@@ -76,13 +76,16 @@ const columns = createColumns(
     (permission) => (deletingPermission.value = permission),
 );
 
-// --- Table setup -------------------------------------------------------
+const filterUrl = '/superadmin/permissions-filter';
+
 const { table, runSearch } = useServerTable<PermissionRow>({
     data: permissionsData,
     columns,
-    baseUrl: index().url,
+    filterUrl,
     sort,
     search,
+    sortableColumns: ['name', 'label', 'group'],
+    only: ['permissions', 'filters'],
 });
 
 // --- Selection handling ----------------------------------------------
@@ -105,13 +108,26 @@ const onSearchInput = (event: Event) => {
 
 const onPerPageChange = (value: AcceptableValue) => {
     if (value === null || typeof value !== 'string') return;
-
-    router.get(
-        index().url,
-        { sort: sort.value, search: search.value, per_page: value },
-        { preserveState: true, preserveScroll: true, replace: true },
-    );
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: value, page: 1 }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['permissions', 'filters'],
+    });
 };
+
+const goToPage = (page: number) => {
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: perPage.value, page }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['permissions', 'filters'],
+    });
+};
+
+function getPageFromUrl(url: string | null): number {
+    if (!url) return 1;
+    const match = url.match(/[?&]page=(\d+)/);
+    return match ? parseInt(match[1], 10) : 1;
+}
 </script>
 
 <template>
@@ -208,33 +224,29 @@ const onPerPageChange = (value: AcceptableValue) => {
             <div
                 class="flex flex-row flex-nowrap items-center justify-between gap-4 overflow-x-auto border-t px-4 py-3">
                 <p class="shrink-0 text-sm whitespace-nowrap text-muted-foreground">
-                    Showing {{ props.permissions.from ?? 0 }} to {{ props.permissions.to ?? 0 }} of {{ props.permissions.total }} permissions
+                    Showing {{ props.permissions.from ?? 0 }} to {{ props.permissions.to ?? 0 }} of {{
+                        props.permissions.total }} permissions
                 </p>
 
                 <div v-if="props.permissions.links.length > 3" class="flex flex-nowrap gap-1">
-                    <Link v-for="(link, i) in props.permissions.links" :key="i" :href="link.url ?? '#'" :class="[
-                        'whitespace-nowrap rounded px-3 py-1 text-sm',
-                        link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
-                        !link.url && 'pointer-events-none opacity-50',
-                    ]" v-html="link.label" />
+                    <button v-for="(link, i) in props.permissions.links" :key="i" type="button" :disabled="!link.url"
+                        @click="link.url && goToPage(getPageFromUrl(link.url))" :class="[
+                            'whitespace-nowrap rounded px-3 py-1 text-sm',
+                            link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+                            !link.url && 'pointer-events-none opacity-50',
+                        ]" v-html="link.label" />
                 </div>
             </div>
         </div>
 
         <!-- Edit Dialog -->
-        <FormDialog :open="!!editingPermission" title="Edit Permission"
-            content-class="sm:max-w-md"
+        <FormDialog :open="!!editingPermission" title="Edit Permission" content-class="sm:max-w-md"
             :description="editingPermission ? `Update ${editingPermission.label} details.` : undefined"
             @update:open="(v) => !v && (editingPermission = null)">
             <template #default="{ close }">
-                <PermissionForm
-                    v-if="editingPermissionFormValues"
-                    :permission="editingPermissionFormValues"
-                    :submit-action="update(editingPermission!.id)"
-                    submit-label="Save Changes"
-                    :on-cancel="close"
-                    @success="editingPermission = null"
-                />
+                <PermissionForm v-if="editingPermissionFormValues" :permission="editingPermissionFormValues"
+                    :submit-action="update(editingPermission!.id)" submit-label="Save Changes" :on-cancel="close"
+                    @success="editingPermission = null" />
             </template>
         </FormDialog>
 
@@ -246,7 +258,7 @@ const onPerPageChange = (value: AcceptableValue) => {
 
         <!-- Bulk Delete Dialog -->
         <BulkDeleteDialog :open="bulkDeleteOpen" :count="selectedCount" :ids="selectedIds" item-label="permission"
-            action="/superadmin/permissions-bulk-destroy"
-            @update:open="bulkDeleteOpen = $event" @deleted="handleBulkDeleteSuccess" />
+            action="/superadmin/permissions-bulk-destroy" @update:open="bulkDeleteOpen = $event"
+            @deleted="handleBulkDeleteSuccess" />
     </div>
 </template>

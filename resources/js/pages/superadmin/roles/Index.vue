@@ -74,13 +74,16 @@ const columns = createColumns(
     (role) => (deletingRole.value = role),
 );
 
-// --- Table setup -------------------------------------------------------
+const filterUrl = '/superadmin/roles-filter';
+
 const { table, runSearch } = useServerTable<RoleRow>({
     data: rolesData,
     columns,
-    baseUrl: index().url,
+    filterUrl,
     sort,
     search,
+    sortableColumns: ['name', 'description'],
+    only: ['roles', 'filters'],
 });
 
 // --- Selection handling ----------------------------------------------
@@ -103,13 +106,27 @@ const onSearchInput = (event: Event) => {
 
 const onPerPageChange = (value: AcceptableValue) => {
     if (value === null || typeof value !== 'string') return;
-
-    router.get(
-        index().url,
-        { sort: sort.value, search: search.value, per_page: value },
-        { preserveState: true, preserveScroll: true, replace: true },
-    );
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: value, page: 1 }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['roles', 'filters'],
+    });
 };
+
+const goToPage = (page: number) => {
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: perPage.value, page }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['roles', 'filters'],
+    });
+};
+
+function getPageFromUrl(url: string | null): number {
+    if (!url) return 1;
+    const match = url.match(/[?&]page=(\d+)/);
+    return match ? parseInt(match[1], 10) : 1;
+}
+
 </script>
 
 <template>
@@ -210,11 +227,12 @@ const onPerPageChange = (value: AcceptableValue) => {
                 </p>
 
                 <div v-if="props.roles.links.length > 3" class="flex flex-nowrap gap-1">
-                    <Link v-for="(link, i) in props.roles.links" :key="i" :href="link.url ?? '#'" :class="[
-                        'whitespace-nowrap rounded px-3 py-1 text-sm',
-                        link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
-                        !link.url && 'pointer-events-none opacity-50',
-                    ]" v-html="link.label" />
+                    <button v-for="(link, i) in props.roles.links" :key="i" type="button" :disabled="!link.url"
+                        @click="link.url && goToPage(getPageFromUrl(link.url))" :class="[
+                            'whitespace-nowrap rounded px-3 py-1 text-sm',
+                            link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+                            !link.url && 'pointer-events-none opacity-50',
+                        ]" v-html="link.label" />
                 </div>
             </div>
         </div>

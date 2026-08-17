@@ -13,49 +13,50 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use App\Http\Controllers\Superadmin\Concerns\HasSessionFilters;
+
 
 class UserController extends Controller
 {
-    public function index(Request $request): Response
+    use HasSessionFilters;
+
+    protected string $filterSessionKey = 'users';
+    protected array $sortableColumns = ['name', 'email'];
+    protected string $filterIndexRoute = 'superadmin.users.index';              
+    public function index(): Response
     {
-        $perPage = (int) $request->input('per_page', 10);
+        $sort = $this->sanitizeSort(session('users.sort'), ['name', 'email']);
+        $search = session('users.search');
+        $perPage = (int) session('users.per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $page = (int) session('users.page', 1);
 
         $users = User::query()
-            ->with('role') // Make sure role is loaded
-            ->when(
-                $request->input('search'),
-                function (Builder $query, string $search) {
-                    $query->where(function (Builder $q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
+            ->with('role')
+            ->when($search, function (Builder $query, string $search) {
+                $query->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($sort, function (Builder $query) use ($sort) {
+                foreach (explode(',', $sort) as $field) {
+                    $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
+                    $query->orderBy(ltrim($field, '-'), $direction);
                 }
-            )
-            ->when(
-                $request->input('sort'),
-                function (Builder $query, string $sort) {
-                    foreach (explode(',', $sort) as $field) {
-                        $direction = str_starts_with($field, '-') ? 'desc' : 'asc';
-                        $column = ltrim($field, '-');
+            }, fn(Builder $query) => $query->latest())
+            ->paginate($perPage, ['*'], 'page', $page);
 
-                        if (in_array($column, ['name', 'email'])) {
-                            $query->orderBy($column, $direction);
-                        }
-                    }
-                },
-                fn(Builder $query) => $query->latest()
-            )
-            ->paginate($perPage)
-            ->withQueryString();
-
-        // Add roles to the index page as well (for the edit modal)
         $roles = Role::select('id', 'name')->get();
 
         return Inertia::render('superadmin/users/Index', [
             'users' => $users,
-            'roles' => $roles, // Pass roles to the index page
-            'filters' => $request->only('sort', 'search', 'per_page'),
+            'roles' => $roles,
+            'filters' => [
+                'sort' => $sort,
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 

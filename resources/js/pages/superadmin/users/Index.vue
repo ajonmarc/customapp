@@ -27,6 +27,8 @@ const props = defineProps<{
     users: {
         data: UserRow[];
         links: { url: string | null; label: string; active: boolean }[];
+        current_page: number;
+        last_page: number;
         from: number | null;
         to: number | null;
         total: number;
@@ -34,6 +36,8 @@ const props = defineProps<{
     roles: { id: number; name: string }[];
     filters?: { sort?: string; search?: string; per_page?: number | string };
 }>();
+
+
 
 defineOptions({
     layout: {
@@ -76,13 +80,16 @@ const columns = createColumns(
     (user) => (deletingUser.value = user),
 );
 
-// --- Table setup -------------------------------------------------------
+const filterUrl = '/superadmin/users-filter';
+
 const { table, runSearch } = useServerTable<UserRow>({
     data: usersData,
     columns,
-    baseUrl: index().url,
+    filterUrl,
     sort,
     search,
+    sortableColumns: ['name', 'email'],
+    only: ['users', 'filters'],
 });
 
 // --- Selection handling ----------------------------------------------
@@ -105,13 +112,26 @@ const onSearchInput = (event: Event) => {
 
 const onPerPageChange = (value: AcceptableValue) => {
     if (value === null || typeof value !== 'string') return;
-
-    router.get(
-        index().url,
-        { sort: sort.value, search: search.value, per_page: value },
-        { preserveState: true, preserveScroll: true, replace: true },
-    );
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: value, page: 1 }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['users', 'filters'],
+    });
 };
+
+const goToPage = (page: number) => {
+    router.post(filterUrl, { sort: sort.value, search: search.value, per_page: perPage.value, page }, {
+        preserveScroll: true,
+        preserveUrl: true, // ← added
+        only: ['users', 'filters'],
+    });
+};
+
+function getPageFromUrl(url: string | null): number {
+    if (!url) return 1;
+    const match = url.match(/[?&]page=(\d+)/);
+    return match ? parseInt(match[1], 10) : 1;
+}
 </script>
 
 <template>
@@ -212,11 +232,12 @@ const onPerPageChange = (value: AcceptableValue) => {
                 </p>
 
                 <div v-if="props.users.links.length > 3" class="flex flex-nowrap gap-1">
-                    <Link v-for="(link, i) in props.users.links" :key="i" :href="link.url ?? '#'" :class="[
-                        'whitespace-nowrap rounded px-3 py-1 text-sm',
-                        link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
-                        !link.url && 'pointer-events-none opacity-50',
-                    ]" v-html="link.label" />
+                    <button v-for="(link, i) in props.users.links" :key="i" type="button" :disabled="!link.url"
+                        @click="link.url && goToPage(getPageFromUrl(link.url))" :class="[
+                            'whitespace-nowrap rounded px-3 py-1 text-sm',
+                            link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+                            !link.url && 'pointer-events-none opacity-50',
+                        ]" v-html="link.label" />
                 </div>
             </div>
         </div>
