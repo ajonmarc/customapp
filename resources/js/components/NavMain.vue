@@ -39,11 +39,11 @@ const isParentActive = (item: NavItem) =>
 // Muted highlight — used for the parent when a child (or itself) is active.
 // Signals "you're in this section" without claiming to be the exact page.
 const parentActiveClasses =
-    'data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium data-[active=true]:[&>svg]:text-sidebar-accent-foreground';
+    'data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-normal data-[active=true]:[&>svg]:text-sidebar-accent-foreground';
 
 // Solid accent — used for the exact current page (top-level link or sub-item).
 const currentPageClasses =
-    'data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-medium data-[active=true]:hover:bg-sidebar-primary data-[active=true]:hover:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground';
+    'data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-normal data-[active=true]:hover:bg-sidebar-primary data-[active=true]:hover:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground';
 </script>
 
 <template>
@@ -68,7 +68,7 @@ const currentPageClasses =
                             <SidebarMenuSub>
                                 <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
                                     <SidebarMenuSubButton as-child :is-active="subItem.href === page.url"
-                                        :class="currentPageClasses">
+                                        :class="[currentPageClasses, '[&>svg]:size-4 [&>svg]:text-sidebar-foreground hover:[&>svg]:text-sidebar-accent-foreground']">
                                         <Link :href="subItem.href">
                                             <component v-if="subItem.icon" :is="subItem.icon" />
                                             <span>{{ subItem.title }}</span>

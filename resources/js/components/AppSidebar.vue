@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, LayoutGrid, Users, Anchor, MapPin, ClipboardCheck, CreditCard, FileBarChart, Activity, Sailboat, CalendarClock, CloudSun, ClipboardList } from '@lucide/vue';
+import { LogOut, LayoutGrid, Users, Anchor, MapPin, ClipboardCheck, BookOpenText, CreditCard, FileBarChart, Activity, Sailboat, CalendarClock, CloudSun, ClipboardList } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -38,6 +38,7 @@ const superadminNavItems: NavItem[] = [
             { title: 'Users', href: '/superadmin/users', icon: Users },
             { title: 'Roles', href: '/superadmin/roles', icon: Anchor },
             { title: 'Permissions', href: '/superadmin/permissions', icon: ClipboardCheck },
+            { title: 'Documentation', href: '/superadmin/documentation', icon: BookOpenText  },
         ],
     },
 ];
