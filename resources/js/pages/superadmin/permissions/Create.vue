@@ -20,7 +20,7 @@ defineOptions({
 <template>
     <Head title="Create Permission" />
     <div class="px-4 py-6">
-        <div class="mx-auto max-w-lg">
+        <div class="max-w-xl">
             <Button as-child variant="ghost" size="sm" class="mb-4 -ml-2">
                 <Link :href="index()">
                     <ArrowLeft class="mr-2 h-4 w-4" />

@@ -51,38 +51,20 @@ const handleRoleChange = (value: AcceptableValue) => {
 </script>
 
 <template>
-    <Form
-        :action="submitAction.url"
-        :method="submitAction.method"
-        class="flex flex-col gap-6"
-        v-slot="{ errors, processing }"
-        @success="emit('success')"
-    >
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <Form :action="submitAction.url" :method="submitAction.method" class="flex flex-col gap-6"
+        v-slot="{ errors, processing }" @success="emit('success')">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1">
             <div class="grid gap-2">
                 <Label for="name">Name</Label>
-                <Input
-                    id="name"
-                    name="name"
-                    :default-value="user?.name"
-                    required
-                    autocomplete="name"
-                    placeholder="Full name"
-                />
+                <Input id="name" name="name" :default-value="user?.name" required autocomplete="name"
+                    placeholder="Full name" />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    :default-value="user?.email"
-                    required
-                    autocomplete="email"
-                    placeholder="email@example.com"
-                />
+                <Input id="email" type="email" name="email" :default-value="user?.email" required autocomplete="email"
+                    placeholder="email@example.com" />
                 <InputError :message="errors.email" />
             </div>
 
@@ -91,10 +73,7 @@ const handleRoleChange = (value: AcceptableValue) => {
                 <!-- Hidden input to submit the role_id value -->
                 <input type="hidden" name="role_id" :value="selectedRoleId" />
 
-                <Select
-                    :model-value="selectedRoleId"
-                    @update:model-value="handleRoleChange"
-                >
+                <Select :model-value="selectedRoleId" @update:model-value="handleRoleChange">
                     <SelectTrigger id="role_id" class="w-full">
                         <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -112,26 +91,15 @@ const handleRoleChange = (value: AcceptableValue) => {
                     Password
                     <span v-if="user" class="text-muted-foreground">(leave blank to keep current)</span>
                 </Label>
-                <Input
-                    id="password"
-                    type="password"
-                    name="password"
-                    :required="!user"
-                    autocomplete="new-password"
-                    placeholder="Password"
-                />
+                <Input id="password" type="password" name="password" :required="!user" autocomplete="new-password"
+                    placeholder="Password" />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="password_confirmation">Confirm password</Label>
-                <Input
-                    id="password_confirmation"
-                    type="password"
-                    name="password_confirmation"
-                    autocomplete="new-password"
-                    placeholder="Confirm password"
-                />
+                <Input id="password_confirmation" type="password" name="password_confirmation"
+                    autocomplete="new-password" placeholder="Confirm password" />
                 <InputError :message="errors.password_confirmation" />
             </div>
         </div>

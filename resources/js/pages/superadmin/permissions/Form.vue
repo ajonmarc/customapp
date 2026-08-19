@@ -27,58 +27,36 @@ const emit = defineEmits<{ success: [] }>();
 </script>
 
 <template>
-    <Form
-        :action="submitAction.url"
-        :method="submitAction.method"
-        class="flex flex-col gap-6"
-        v-slot="{ errors, processing }"
-        @success="emit('success')"
-    >
-        <div class="grid gap-2">
-            <Label for="label">Label</Label>
-            <Input
-                id="label"
-                name="label"
-                :default-value="permission?.label"
-                required
-                placeholder="e.g. Manage Users"
-            />
-            <InputError :message="errors.label" />
-        </div>
+    <Form :action="submitAction.url" :method="submitAction.method" class="flex flex-col gap-6"
+        v-slot="{ errors, processing }" @success="emit('success')">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1">
+            <div class="grid gap-2">
+                <Label for="label">Label</Label>
+                <Input id="label" name="label" :default-value="permission?.label" required
+                    placeholder="e.g. Manage Users" />
+                <InputError :message="errors.label" />
+            </div>
 
-        <div class="grid gap-2">
-            <Label for="name">Name</Label>
-            <Input
-                id="name"
-                name="name"
-                :default-value="permission?.name"
-                required
-                placeholder="e.g. users.manage"
-            />
-            <InputError :message="errors.name" />
-        </div>
+            <div class="grid gap-2">
+                <Label for="name">Name</Label>
+                <Input id="name" name="name" :default-value="permission?.name" required
+                    placeholder="e.g. users.manage" />
+                <InputError :message="errors.name" />
+            </div>
 
-        <div class="grid gap-2">
-            <Label for="group">Group</Label>
-            <Input
-                id="group"
-                name="group"
-                :default-value="permission?.group"
-                required
-                placeholder="e.g. Users"
-            />
-            <InputError :message="errors.group" />
-        </div>
+            <div class="grid gap-2">
+                <Label for="group">Group</Label>
+                <Input id="group" name="group" :default-value="permission?.group" required placeholder="e.g. Users" />
+                <InputError :message="errors.group" />
+            </div>
 
-        <div class="grid gap-2">
-            <Label for="description">Description</Label>
-            <Textarea
-                id="description"
-                name="description"
-                :default-value="permission?.description ?? ''"
-                placeholder="Optional description"
-            />
-            <InputError :message="errors.description" />
+            <div class="grid gap-2">
+                <Label for="description">Description</Label>
+                <Textarea id="description" name="description" :default-value="permission?.description ?? ''"
+                    placeholder="Optional description" />
+                <InputError :message="errors.description" />
+            </div>
+
         </div>
 
         <div class="flex items-center justify-end gap-3">
