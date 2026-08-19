@@ -1,12 +1,12 @@
 export type ThemeName =
-    | 'surigao'
-    | 'sunburst'
-    | 'forest'
-    | 'midnight'
-    | 'aurora'
-    | 'ember'
-    | 'slate'
-    | 'coral';
+    | 'theme1'
+    | 'theme2'
+    | 'theme3'
+    | 'theme4'
+    | 'theme5'
+    | 'theme6'
+    | 'theme7'
+    | 'theme8';
 
 export type ThemeOption = {
     value: ThemeName;
@@ -15,14 +15,14 @@ export type ThemeOption = {
 };
 
 export const themes: ThemeOption[] = [
-    { value: 'surigao', label: 'Surigao', swatch: 'hsl(189 82% 30%)' },
-    { value: 'sunburst', label: 'Sunburst', swatch: 'hsl(14 85% 55%)' },
-    { value: 'forest', label: 'Forest Canopy', swatch: 'hsl(150 55% 28%)' },
-    { value: 'midnight', label: 'Midnight Lagoon', swatch: 'hsl(245 60% 45%)' },
-    { value: 'aurora', label: 'Aurora', swatch: 'hsl(175 70% 38%)' },
-    { value: 'ember', label: 'Ember Coast', swatch: 'hsl(350 75% 52%)' },
-    { value: 'slate', label: 'Slate Office', swatch: 'hsl(220 20% 30%)' },
-    { value: 'coral', label: 'Coral Reef', swatch: 'hsl(6 78% 58%)' },
+    { value: 'theme1', label: 'default', swatch: '#171717' },
+    { value: 'theme2', label: 'theme2', swatch: '#f59e0b' },
+    { value: 'theme3', label: 'theme3', swatch: '#8a79ab' },
+    { value: 'theme4', label: 'theme4', swatch: '#8b5cf6' },
+    { value: 'theme5', label: 'theme5', swatch: '#d04f99' },
+    { value: 'theme6', label: 'theme6', swatch: '#644a40' },
+    { value: 'theme7', label: 'theme7', swatch: '#ffc0cb' },
+    { value: 'theme8', label: 'theme8', swatch: '#8839ef' },
 ];
 
-export const DEFAULT_THEME: ThemeName = 'surigao';
+export const DEFAULT_THEME: ThemeName = 'theme1';

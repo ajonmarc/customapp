@@ -22,7 +22,7 @@
 
         (function () {
             const theme = localStorage.getItem('theme');
-            if (theme && theme !== 'surigao') {
+            if (theme && theme !== 'theme1') {
                 document.documentElement.setAttribute('data-theme', theme);
             }
         })();
