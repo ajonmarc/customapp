@@ -27,6 +27,8 @@ const props = defineProps<{
     roles: {
         data: RoleRow[];
         links: { url: string | null; label: string; active: boolean }[];
+        current_page: number;
+        last_page: number;
         from: number | null;
         to: number | null;
         total: number;
@@ -226,11 +228,22 @@ function getPageFromUrl(url: string | null): number {
                     Showing {{ props.roles.from ?? 0 }} to {{ props.roles.to ?? 0 }} of {{ props.roles.total }} roles
                 </p>
 
+             
                 <div v-if="props.roles.links.length > 3" class="flex flex-nowrap gap-1">
-                    <button v-for="(link, i) in props.roles.links" :key="i" type="button" :disabled="!link.url"
-                        @click="link.url && goToPage(getPageFromUrl(link.url))" :class="[
+                    <button v-for="(link, i) in props.roles.links" :key="i" type="button" :disabled="!link.url" @click="
+                        link.url &&
+                        goToPage(
+                            link.label.includes('Previous')
+                                ? 1
+                                : link.label.includes('Next')
+                                    ? props.roles.last_page
+                                    : getPageFromUrl(link.url)
+                        )
+                        " :class="[
                             'whitespace-nowrap rounded px-3 py-1 text-sm',
-                            link.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted',
                             !link.url && 'pointer-events-none opacity-50',
                         ]" v-html="link.label" />
                 </div>
