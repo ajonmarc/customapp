@@ -149,39 +149,58 @@ function getPageFromUrl(url: string | null): number {
         <!-- Single unified panel -->
         <div class="mt-6 rounded-lg border">
             <!-- Toolbar -->
-            <div
-                class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 border-b px-4 py-3">
-                <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Show</span>
-                    <Select :model-value="perPage" @update:model-value="onPerPageChange">
-                        <SelectTrigger class="h-9 w-20">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <span>entries</span>
-                </div>
-
-                <div class="flex flex-col gap-3 w-full sm:w-auto sm:flex-row sm:items-center sm:gap-4">
-                    <div class="relative order-1 w-full sm:order-2 sm:max-w-sm">
-                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input v-model="searchInput" placeholder="Search by name, label, or group..." class="pl-9"
-                            @input="onSearchInput" />
+            <div class="flex flex-col gap-4 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                <!-- Left side: Show entries + Search -->
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
+                        <span>Show</span>
+                        <Select :model-value="perPage" @update:model-value="onPerPageChange">
+                            <SelectTrigger class="h-9 w-20">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="25">25</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <span>entries</span>
                     </div>
 
-                    <div v-if="selectedCount > 0"
-                        class="order-2 flex items-center justify-between gap-3 sm:order-1 sm:justify-start">
+                    <div class="relative w-full sm:w-64">
+                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input v-model="searchInput" placeholder="Search by name or label..." class="pl-9"
+                            @input="onSearchInput" />
+                    </div>
+                </div>
+
+                <!-- Right side: bulk actions + export buttons -->
+                <div
+                    class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between lg:justify-end lg:gap-2">
+                    <div v-if="selectedCount > 0" class="flex items-center justify-between gap-3 sm:justify-start">
                         <span class="text-sm text-muted-foreground whitespace-nowrap">
                             {{ selectedCount }} selected
                         </span>
                         <Button variant="destructive" size="sm" @click="bulkDeleteOpen = true">
                             <Trash2 class="mr-2 h-4 w-4" />
                             Delete selected
+                        </Button>
+                    </div>
+
+                    <!-- export buttons -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <Button variant="outline" size="sm">
+                            <FileText class="mr-2 h-4 w-4" />
+                            PDF
+                        </Button>
+                        <Button variant="outline" size="sm">
+                            <FileSpreadsheet class="mr-2 h-4 w-4" />
+                            Excel
+                        </Button>
+                        <Button variant="outline" size="sm">
+                            <File class="mr-2 h-4 w-4" />
+                            Word
                         </Button>
                     </div>
                 </div>
@@ -231,16 +250,17 @@ function getPageFromUrl(url: string | null): number {
                 </p>
 
                 <div v-if="props.permissions.links.length > 3" class="flex flex-nowrap gap-1">
-                    <button v-for="(link, i) in props.permissions.links" :key="i" type="button" :disabled="!link.url" @click="
-                        link.url &&
-                        goToPage(
-                            link.label.includes('Previous')
-                                ? 1
-                                : link.label.includes('Next')
-                                    ? props.permissions.last_page
-                                    : getPageFromUrl(link.url)
-                        )
-                        " :class="[
+                    <button v-for="(link, i) in props.permissions.links" :key="i" type="button" :disabled="!link.url"
+                        @click="
+                            link.url &&
+                            goToPage(
+                                link.label.includes('Previous')
+                                    ? 1
+                                    : link.label.includes('Next')
+                                        ? props.permissions.last_page
+                                        : getPageFromUrl(link.url)
+                            )
+                            " :class="[
                             'whitespace-nowrap rounded px-3 py-1 text-sm',
                             link.active
                                 ? 'bg-primary text-primary-foreground'

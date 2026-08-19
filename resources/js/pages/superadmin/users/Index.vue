@@ -22,6 +22,7 @@ import { createColumns, type UserRow } from './columns';
 import UserForm from './Form.vue';
 import { index, create, update, destroy } from '@/routes/superadmin/users';
 import type { AcceptableValue } from 'reka-ui';
+import { FileText, FileSpreadsheet, File } from '@lucide/vue';
 
 const props = defineProps<{
     users: {
@@ -151,39 +152,58 @@ function getPageFromUrl(url: string | null): number {
         <!-- Single unified panel -->
         <div class="mt-6 rounded-lg border">
             <!-- Toolbar -->
-            <div
-                class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 border-b px-4 py-3">
-                <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Show</span>
-                    <Select :model-value="perPage" @update:model-value="onPerPageChange">
-                        <SelectTrigger class="h-9 w-20">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <span>entries</span>
-                </div>
+            <div class="flex flex-col gap-4 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                <!-- Left side: Show entries + Search -->
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
+                        <span>Show</span>
+                        <Select :model-value="perPage" @update:model-value="onPerPageChange">
+                            <SelectTrigger class="h-9 w-20">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="25">25</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <span>entries</span>
+                    </div>
 
-                <div class="flex flex-col gap-3 w-full sm:w-auto sm:flex-row sm:items-center sm:gap-4">
-                    <div class="relative order-1 w-full sm:order-2 sm:max-w-sm">
+                    <div class="relative w-full sm:w-64">
                         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input v-model="searchInput" placeholder="Search by name or email..." class="pl-9"
                             @input="onSearchInput" />
                     </div>
+                </div>
 
-                    <div v-if="selectedCount > 0"
-                        class="order-2 flex items-center justify-between gap-3 sm:order-1 sm:justify-start">
+                <!-- Right side: bulk actions + export buttons -->
+                <div
+                    class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between lg:justify-end lg:gap-2">
+                    <div v-if="selectedCount > 0" class="flex items-center justify-between gap-3 sm:justify-start">
                         <span class="text-sm text-muted-foreground whitespace-nowrap">
                             {{ selectedCount }} selected
                         </span>
                         <Button variant="destructive" size="sm" @click="bulkDeleteOpen = true">
                             <Trash2 class="mr-2 h-4 w-4" />
                             Delete selected
+                        </Button>
+                    </div>
+
+                    <!-- export buttons -->
+                    <div class="flex items-center gap-2">
+                        <Button size="icon" class="bg-red-600 hover:bg-red-700 text-white" title="Export as PDF"
+                            aria-label="Export as PDF">
+                            <FileText class="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" class="bg-green-600 hover:bg-green-700 text-white" title="Export as Excel"
+                            aria-label="Export as Excel">
+                            <FileSpreadsheet class="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" class="bg-blue-600 hover:bg-blue-700 text-white" title="Export as Word"
+                            aria-label="Export as Word">
+                            <File class="h-4 w-4" />
                         </Button>
                     </div>
                 </div>
