@@ -9,6 +9,7 @@ import { documentation } from '@/routes/superadmin';
 import type { DateRange } from 'reka-ui';
 import { RangeCalendar } from '@/components/ui/range-calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import DataTable from '@/components/payments/data-table.vue';
 
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -744,6 +745,18 @@ const userStatus = ref('active');
                                 </TableRow>
                             </TableBody>
                         </Table>
+                    </CardContent>
+                </Card>
+
+                <!-- Data Table (TanStack) -->
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Data Table</CardTitle>
+                        <CardDescription>Sortable, filterable, paginated table with row selection and per-row actions
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable />
                     </CardContent>
                 </Card>
 
