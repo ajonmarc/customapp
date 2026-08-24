@@ -1,35 +1,45 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutGrid, Menu, Search, Sailboat, MapPin, ClipboardList } from '@lucide/vue';    
+
+import { Menu, Search } from '@lucide/vue';
+
 import { computed } from 'vue';
+
 import AppLogo from '@/components/AppLogo.vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import {
     NavigationMenu,
     NavigationMenuItem,
     NavigationMenuList,
     navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
+
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
-} from '@/components/ui/sheet'
+} from '@/components/ui/sheet';
 
 import UserMenuContent from '@/components/UserMenuContent.vue';
+
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { getInitials } from '@/composables/useInitials';
-import type { BreadcrumbItem, NavItem } from '@/types';
+
+import type { BreadcrumbItem } from '@/types';
+
+import { userNavItems } from '@/navigation';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -40,16 +50,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const page = usePage();
+
 const auth = computed(() => page.props.auth);
+
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
 const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
-
-const mainNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/user/dashboard', icon: LayoutGrid },
-
-];
 </script>
 
 <template>
@@ -76,7 +83,7 @@ const mainNavItems: NavItem[] = [
                         </SheetHeader>
 
                         <nav class="flex flex-col gap-1 p-4">
-                            <Link v-for="(item, index) in mainNavItems" :key="index" :href="item.href" :class="[
+                            <Link v-for="(item, index) in userNavItems" :key="index" :href="item.href" :class="[
                                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                                 isCurrentUrl(item.href)
                                     ? 'bg-accent text-accent-foreground'
@@ -99,7 +106,7 @@ const mainNavItems: NavItem[] = [
                 <div class="hidden h-full lg:flex lg:flex-1">
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2">
-                            <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index"
+                            <NavigationMenuItem v-for="(item, index) in userNavItems" :key="index"
                                 class="relative flex h-full items-center">
                                 <Link :class="[
                                     navigationMenuTriggerStyle(),

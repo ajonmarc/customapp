@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, LayoutGrid, Users, Anchor, MapPin, ClipboardCheck, BookOpenText, CreditCard, FileBarChart, Activity, Sailboat, CalendarClock, CloudSun, ClipboardList } from '@lucide/vue';
+import { LogOut } from '@lucide/vue';
 import { computed } from 'vue';
+
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
+
 import {
     Sidebar,
     SidebarContent,
@@ -13,9 +15,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+
 import { logout } from '@/routes';
 import { useRole } from '@/composables/useRole';
-import type { NavItem } from '@/types';
+
+import {
+    superadminNavItems,
+    adminNavItems,
+    userNavItems,
+} from '@/navigation';
 
 const { isSuperadmin, isAdmin, isUser } = useRole();
 
@@ -23,41 +31,14 @@ const homeHref = computed(() => {
     if (isSuperadmin.value) return '/superadmin/dashboard';
     if (isAdmin.value) return '/admin/dashboard';
     if (isUser.value) return '/user/dashboard';
+
     return '/';
 });
-
-const superadminNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/superadmin/dashboard', icon: LayoutGrid },
-    { title: 'Documentation', href: '/superadmin/documentation', icon: BookOpenText },
-
-
-];
-
-const adminNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
-
-    {
-        title: 'User Management',
-        href: '/admin/users',
-        icon: Users,
-        isActive: true,
-        items: [
-            { title: 'Users', href: '/admin/users', icon: Users },
-            { title: 'Roles', href: '/admin/roles', icon: Anchor },
-            { title: 'Permissions', href: '/admin/permissions', icon: ClipboardCheck },
-        ],
-    },
-
-];
-
-const userNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/user/dashboard', icon: LayoutGrid },
-
-];
 
 const handleLogout = () => {
     router.flushAll();
 };
+
 </script>
 
 <template>
@@ -73,21 +54,24 @@ const handleLogout = () => {
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
+
         <SidebarContent>
-            <!-- Super Administrator -->
+   
             <template v-if="isSuperadmin">
-                <NavMain label="Super Administrator" :items="superadminNavItems" />
-                <NavMain label="Administrator" :items="adminNavItems" />
+                <NavMain label="Super Admin" :items="superadminNavItems" />
+                <NavMain label="Admin" :items="adminNavItems" />
                 <NavMain label="User" :items="userNavItems" />
             </template>
 
-            <!-- Administrator -->
+      
             <template v-else-if="isAdmin">
-                <NavMain label="Administrator" :items="adminNavItems" />
+                <NavMain label="Admin" :items="adminNavItems" />
             </template>
 
-            <!-- User -->
-            <NavMain v-else-if="isUser" label="User" :items="userNavItems" />
+        
+            <template v-else-if="isUser">
+                <NavMain label="User" :items="userNavItems" />
+            </template>
         </SidebarContent>
 
         <SidebarFooter>
