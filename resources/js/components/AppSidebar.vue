@@ -28,19 +28,9 @@ const homeHref = computed(() => {
 
 const superadminNavItems: NavItem[] = [
     { title: 'Dashboard', href: '/superadmin/dashboard', icon: LayoutGrid },
+    { title: 'Documentation', href: '/superadmin/documentation', icon: BookOpenText },
 
-    {
-        title: 'User Management',
-        href: '/superadmin/users',
-        icon: Users,
-        isActive: true,
-        items: [
-            { title: 'Users', href: '/superadmin/users', icon: Users },
-            { title: 'Roles', href: '/superadmin/roles', icon: Anchor },
-            { title: 'Permissions', href: '/superadmin/permissions', icon: ClipboardCheck },
-            { title: 'Documentation', href: '/superadmin/documentation', icon: BookOpenText },
-        ],
-    },
+
 ];
 
 const adminNavItems: NavItem[] = [
@@ -94,7 +84,6 @@ const handleLogout = () => {
             <!-- Administrator -->
             <template v-else-if="isAdmin">
                 <NavMain label="Administrator" :items="adminNavItems" />
-                <NavMain label="Super Administrator" :items="superadminNavItems" />
             </template>
 
             <!-- User -->
